@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Mandalart Planner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .mandalart-cell {
+            aspect-ratio: 1 / 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 12px;
+            padding: 8px;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .mandalart-cell:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .detail-item {
+            background: white;
+            border-left: 4px solid #3b82f6;
+            margin-bottom: 8px;
+            padding: 12px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen">
+
+    <div id="main-view" class="max-w-md mx-auto p-4">
+        <header class="text-center py-8">
+            <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">자기관리 만다라트</h1>
+            <p class="text-slate-500 mt-2">각 영역을 클릭하여 12가지 실천 과제를 확인하세요.</p>
+        </header>
+
+        <!-- 3x3 메인 매트릭스 -->
+        <div class="grid grid-cols-3 gap-3">
+            <div onclick="showDetail('디지털관리')" class="mandalart-cell bg-orange-100 text-orange-700">디지털관리</div>
+            <div onclick="showDetail('시간관리')" class="mandalart-cell bg-blue-100 text-blue-700">시간관리</div>
+            <div onclick="showDetail('건강관리')" class="mandalart-cell bg-green-100 text-green-700">건강관리</div>
+            
+            <div onclick="showDetail('자기계발')" class="mandalart-cell bg-purple-100 text-purple-700">자기계발</div>
+            <div class="mandalart-cell bg-slate-800 text-white shadow-inner cursor-default">CORE<br>성장</div>
+            <div onclick="showDetail('감정관리')" class="mandalart-cell bg-pink-100 text-pink-700">감정관리</div>
+            
+            <div onclick="showDetail('자기점검')" class="mandalart-cell bg-yellow-100 text-yellow-700">자기점검</div>
+            <div onclick="showDetail('습관형성')" class="mandalart-cell bg-indigo-100 text-indigo-700">습관형성</div>
+            <div onclick="showDetail('목표설정')" class="mandalart-cell bg-teal-100 text-teal-700">목표설정</div>
+        </div>
+    </div>
+
+    <!-- 세부 리스트 뷰 -->
+    <div id="detail-view" class="max-w-md mx-auto p-4 hidden">
+        <button onclick="showMain()" class="mb-4 text-blue-600 font-bold flex items-center">
+            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            메인으로 돌아가기
+        </button>
+        <h2 id="detail-title" class="text-2xl font-bold text-slate-800 mb-6 border-b-2 border-slate-200 pb-2"></h2>
+        <div id="detail-list" class="space-y-2">
+            <!-- 실천 과제 12개가 여기에 삽입됨 -->
+        </div>
+    </div>
+
+    <script>
+        const masterData = {
+            "시간관리": ["아이젠하워 매트릭스 활용", "데일리 리포트 작성", "Deep Work 2시간 확보", "포모도로 기법 적용", "자투리 시간 목록 작성", "주간 일정 미리 계획", "불필요한 미팅 거절", "이메일/메신저 확인 시간 지정", "멀티태스킹 지양하기", "기상 직후 1시간 활용", "취침 전 내일 루틴 점검", "시간 가산비 계산하기"],
+            "건강관리": ["7시간 적정 수면 유지", "매일 물 2L 섭취", "주 3회 근력 운동", "식단 일지 기록", "영양제 규칙적 복용", "스트레칭 루틴화", "설탕/가공식품 제한", "정기적인 건강검진", "계단 이용하기", "명상을 통한 뇌 건강", "바른 자세 유지(거북목 방지)", "절주 및 금연 실천"],
+            "감정관리": ["감정 일기 쓰기", "심호흡 및 명상 10분", "스트레스 해소 취미 활동", "감정의 원인 객관화하기", "긍정 확언(Affirmation)", "타인과의 적절한 거리두기", "나만의 케렌시아(휴식처) 방문", "비교하는 습관 버리기", "충분한 휴식 시간 확보", "전문가 대화 혹은 상담", "작은 일에 감사하기", "완벽주의 기대치 낮추기"],
+            "목표설정": ["SMART 원칙 준수", "10년 후 비전 수립", "연간 핵심 지표(KPI) 설정", "목표 시각화(이미지화)", "분기별 목표 재정렬", "실행 가능한 최소 단위 분절", "목표 달성 시 보상 설계", "중간 점검 마일스톤 설정", "Plan B 시나리오 구축", "핵심 가치와 일치 확인", "주변에 목표 공표하기", "기록을 통한 진행률 추적"],
+            "습관형성": ["습관 쌓기(Stacking) 전략", "2분 규칙(최소 시작 단위)", "습관 추적 앱 활용", "환경 재설계(유혹 제거)", "모닝 루틴 정립", "이브닝 루틴 정립", "실패 시 즉시 복구 규칙", "작은 성공 축하하기", "정체성 중심 습관 세우기", "나쁜 습관 대체재 찾기", "동기 부여 문구 게시", "습관 메이트와 함께하기"],
+            "디지털관리": ["스크린 타임 일일 점검", "불필요한 앱 삭제", "모든 알림 끄기(푸시 제한)", "디지털 디톡스 시간 설정", "이메일 수신함 비우기", "클라우드 파일 정리", "SNS 사용 시간 제한", "업무와 사생활 기기 분리", "구독 서비스 정기 점검", "블루라이트 차단 습관", "데이터 백업 생활화", "북마크 및 정보 필터링"],
+            "자기점검": ["주간 회고(KPT) 작성", "월간 성과 분석", "강점/약점 SWOT 분석", "재정 상태(가계부) 점검", "독서 리스트 검토", "인간관계 에너지 점검", "일기 다시 읽기", "가치관 부합도 확인", "피드백 수용 및 반영", "전문성 지표 측정", "멘토와의 대화", "번아웃 전조 증상 체크"],
+            "자기계발": ["전공 분야 전문 서적 탐독", "외국어 회화 루틴", "새로운 소프트웨어 학습", "글쓰기 및 블로그 포스팅", "온라인 강의 수강", "오프라인 세미나 참석", "유료 구독 정보 활용", "강의 노트를 지식베이스화", "사이드 프로젝트 실행", "자격증 취득 도전", "업계 뉴스레터 구독", "스피치/커뮤니케이션 연습"]
+        };
+
+        function showDetail(category) {
+            document.getElementById('main-view').classList.add('hidden');
+            const detailView = document.getElementById('detail-view');
+            detailView.classList.remove('hidden');
+            
+            document.getElementById('detail-title').innerText = category;
+            const listContainer = document.getElementById('detail-list');
+            listContainer.innerHTML = '';
+
+            masterData[category].forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'detail-item';
+                div.innerHTML = `<span class="text-blue-500 font-bold mr-2">${index + 1}.</span> ${item}`;
+                listContainer.appendChild(div);
+            });
+            window.scrollTo(0, 0);
+        }
+
+        function showMain() {
+            document.getElementById('detail-view').classList.add('hidden');
+            document.getElementById('main-view').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
